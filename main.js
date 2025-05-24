@@ -2,35 +2,37 @@ import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.165.0/examples/jsm/controls/OrbitControls.js';
 
 let scene, camera, renderer, controls;
-let objects = []; // Теперь это массив, так как объектов может быть несколько
+let objects = [];
 let lastFrameTime = performance.now();
 let frameCount = 0;
 let fps = 0;
 let minFps = Infinity;
 let frameTimes = [];
-const FPS_HISTORY_SIZE = 60 * 5; // Для расчета среднего FPS за 5 секунд
+const FPS_HISTORY_SIZE = 60 * 5;
+
+let objectsVisible = true;
 
 const fpsDisplay = document.getElementById('fps-display');
 const avgFpsDisplay = document.getElementById('avg-fps-display');
 const minFpsDisplay = document.getElementById('min-fps-display');
 const frameTimeDisplay = document.getElementById('frame-time-display');
-const objCountDisplay = document.getElementById('obj-count-display'); // Добавлено
+const objCountDisplay = document.getElementById('obj-count-display');
 const polyCountDisplay = document.getElementById('poly-count-display');
 
-const objectCountSlider = document.getElementById('object-count'); // Добавлено
-const currentObjectCountSpan = document.getElementById('current-object-count'); // Добавлено
+const objectCountSlider = document.getElementById('object-count');
+const currentObjectCountSpan = document.getElementById('current-object-count');
 const polyDetailSlider = document.getElementById('poly-detail');
 const currentPolyDetailSpan = document.getElementById('current-poly-detail');
 const startTestButton = document.getElementById('start-test');
+const toggleObjectsButton = document.getElementById('toggle-objects');
 
-let objectCount = parseInt(objectCountSlider.value); // Текущее количество объектов
-let polyDetail = parseInt(polyDetailSlider.value); // Уровень детализации полигонов
+let objectCount = parseInt(objectCountSlider.value);
+let polyDetail = parseInt(polyDetailSlider.value);
 let totalPolygons = 0;
 
-currentObjectCountSpan.textContent = objectCount; // Обновляем
+currentObjectCountSpan.textContent = objectCount;
 currentPolyDetailSpan.textContent = polyDetail;
 
-// Обработчик для ползунка количества объектов
 objectCountSlider.addEventListener('input', (event) => {
     objectCount = parseInt(event.target.value);
     currentObjectCountSpan.textContent = objectCount;
@@ -44,7 +46,6 @@ polyDetailSlider.addEventListener('input', (event) => {
 });
 
 startTestButton.addEventListener('click', () => {
-    // Сбрасываем все метрики при перезапуске
     minFps = Infinity;
     frameTimes = [];
     frameCount = 0;
@@ -57,14 +58,28 @@ startTestButton.addEventListener('click', () => {
     animate();
 });
 
+toggleObjectsButton.addEventListener('click', () => {
+    objectsVisible = !objectsVisible;
+    objects.forEach(obj => {
+        obj.visible = objectsVisible;
+    });
+    if (objectsVisible) {
+        polyCountDisplay.textContent = Math.round(totalPolygons).toLocaleString();
+        objCountDisplay.textContent = objectCount;
+    } else {
+        polyCountDisplay.textContent = '0';
+        objCountDisplay.textContent = '0';
+    }
+});
+
+
 function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x222222);
 
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    // Положение камеры зависит от количества объектов
     updateCameraPosition();
-    camera.lookAt(0, 0, 0); // Камера смотрит в центр
+    camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -76,9 +91,8 @@ function init() {
     controls.screenSpacePanning = false;
     controls.minDistance = 2;
     controls.maxDistance = 50;
-    controls.target.set(0, 0, 0); // Устанавливаем цель OrbitControls в центр
+    controls.target.set(0, 0, 0);
 
-    // Добавляем свет
     const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
 
@@ -90,24 +104,23 @@ function init() {
     directionalLight2.position.set(-5, -5, -5).normalize();
     scene.add(directionalLight2);
 
-    addObjects(); // Добавляем объекты
+    addObjects();
 
     window.addEventListener('resize', onWindowResize);
 }
 
-// Новая функция для обновления позиции камеры в зависимости от количества объектов
 function updateCameraPosition() {
-    let zPos = 10; // По умолчанию для 1 объекта
+    let zPos = 12; // Для 1 объекта
     if (objectCount === 2) {
-        zPos = 15;
+        zPos = 18; // Для 2 объектов
     } else if (objectCount === 3) {
-        zPos = 20;
+        zPos = 25; // Для 3 объектов
     } else if (objectCount === 4) {
-        zPos = 25;
+        zPos = 30; // Для 4 объектов
     }
     camera.position.set(0, 0, zPos);
-    if (controls) { // Если controls уже инициализированы, обновим их
-        controls.update(); // Для применения новой позиции камеры
+    if (controls) {
+        controls.update();
     }
     camera.updateProjectionMatrix();
 }
@@ -117,13 +130,12 @@ function getHighPolyGeometry(detail) {
     for (let i = 1; i < detail; i++) {
         segments *= 2;
     }
-    segments = Math.min(segments, 4096); // Максимальное количество сегментов
+    segments = Math.min(segments, 4096);
 
-    return new THREE.SphereGeometry(5, segments, segments / 2); // Радиус 5
+    return new THREE.SphereGeometry(5, segments, segments / 2);
 }
 
-function addObjects() { // Переименована из addMainObject
-    // Очищаем старые объекты
+function addObjects() {
     objects.forEach(obj => {
         scene.remove(obj);
         obj.geometry.dispose();
@@ -133,9 +145,8 @@ function addObjects() { // Переименована из addMainObject
     totalPolygons = 0;
 
     const geometry = getHighPolyGeometry(polyDetail);
-    const singleObjectPolygons = geometry.attributes.position.count / 3;
+    const singleObjectTriangles = geometry.attributes.position.count / 3;
 
-    // Определяем фиксированные позиции для 1-4 объектов
     const positions = [];
     if (objectCount === 1) {
         positions.push(new THREE.Vector3(0, 0, 0));
@@ -153,29 +164,27 @@ function addObjects() { // Переименована из addMainObject
         positions.push(new THREE.Vector3(7, -7, 0));
     }
 
-    // Создаем и добавляем объекты
     for (let i = 0; i < objectCount; i++) {
         const material = new THREE.MeshPhongMaterial({
-            color: new THREE.Color(Math.random(), Math.random(), Math.random()), // Рандомный цвет для каждого объекта
+            color: new THREE.Color(Math.random(), Math.random(), Math.random()),
             flatShading: true
         });
         const object = new THREE.Mesh(geometry, material);
-        object.position.copy(positions[i]); // Устанавливаем предопределенную позицию
-        object.userData.rotationSpeed = new THREE.Vector3( // Индивидуальная скорость вращения
+        object.position.copy(positions[i]);
+        object.userData.rotationSpeed = new THREE.Vector3(
             Math.random() * 0.02 - 0.01,
             Math.random() * 0.02 - 0.01,
             Math.random() * 0.02 - 0.01
         );
+        object.visible = objectsVisible;
         scene.add(object);
-        objects.push(object); // Добавляем в массив для анимации
-        totalPolygons += singleObjectPolygons; // Накапливаем общее количество полигонов
+        objects.push(object);
+        totalPolygons += singleObjectTriangles;
     }
 
-    // Обновляем отображение количества объектов и полигонов
-    objCountDisplay.textContent = objectCount;
-    polyCountDisplay.textContent = Math.round(totalPolygons).toLocaleString();
+    objCountDisplay.textContent = objectsVisible ? objectCount : 0;
+    polyCountDisplay.textContent = objectsVisible ? Math.round(totalPolygons).toLocaleString() : 0;
 
-    // Обновляем позицию камеры, если количество объектов изменилось
     updateCameraPosition();
 }
 
@@ -189,7 +198,7 @@ function resetScene() {
         objects = [];
     }
     if (renderer) {
-        addObjects(); // Добавляем новые объекты
+        addObjects();
     }
 }
 
@@ -200,17 +209,17 @@ function animate() {
         controls.update();
     }
 
-    // Обновление всех объектов в массиве
-    objects.forEach(object => {
-        object.rotation.x += object.userData.rotationSpeed.x;
-        object.rotation.y += object.userData.rotationSpeed.y;
-        object.rotation.z += object.userData.rotationSpeed.z;
+    if (objectsVisible) {
+        objects.forEach(object => {
+            object.rotation.x += object.userData.rotationSpeed.x;
+            object.rotation.y += object.userData.rotationSpeed.y;
+            object.rotation.z += object.userData.rotationSpeed.z;
 
-        // Более сложное движение
-        object.position.x += Math.sin(performance.now() * 0.00005 + object.position.y * 0.1) * 0.1;
-        object.position.y += Math.cos(performance.now() * 0.00005 + object.position.x * 0.1) * 0.1;
-        object.position.z += Math.sin(performance.now() * 0.00005 + object.position.z * 0.1) * 0.1;
-    });
+            object.position.x += Math.sin(performance.now() * 0.00005 + object.position.y * 0.1) * 0.1;
+            object.position.y += Math.cos(performance.now() * 0.00005 + object.position.x * 0.1) * 0.1;
+            object.position.z += Math.sin(performance.now() * 0.00005 + object.position.z * 0.1) * 0.1;
+        });
+    }
 
     const currentTime = performance.now();
     const frameRenderTime = currentTime - lastFrameTime;
@@ -240,6 +249,5 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    // Обновляем позицию камеры при изменении размера окна
     updateCameraPosition();
 }
