@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile FPS Benchmark</title>
+    <title>largeshader</title>
     <style>
         body { margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; font-family: Arial, sans-serif; background-color: #222;}
         #stats-panel {
@@ -57,7 +57,7 @@
             background-color: #0056b3;
         }
         #controls input[type="range"] {
-            width: 150px; /* Уменьшить ширину ползунка для мобильных */
+            width: 150px;
         }
         #signature {
             position: absolute;
@@ -76,7 +76,7 @@
         <div>Мин FPS: <span id="min-fps-display">---</span></div>
         <div>Время кадра (ms): <span id="frame-time-display">0.00</span></div>
         <div>Объектов: <span id="obj-count-display">0</span></div>
-        <div>Полигонов: <span id="poly-count-display">0</span></div>
+        <div>Треугольников: <span id="poly-count-display">0</span></div>
     </div>
     <div id="controls">
         <label for="object-count">Количество объектов:</label>
@@ -88,6 +88,7 @@
         <span id="current-poly-detail">1</span>
 
         <button id="start-test">Запустить/Перезапустить тест</button>
+        <button id="toggle-objects">Показать/Скрыть объекты</button>
     </div>
     <div id="signature">by Sigma Kofe</div>
     <script type="module" src="./main.js"></script>
