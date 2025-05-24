@@ -34,15 +34,15 @@
             border-radius: 8px;
             z-index: 10;
             display: flex;
-            flex-wrap: wrap; /* Для мобильных, чтобы элементы переносились */
+            flex-wrap: wrap;
             gap: 10px;
             align-items: center;
             color: white;
-            max-width: 90%; /* Ограничение ширины для мобильных */
+            max-width: 90%;
             justify-content: center;
         }
         #controls label {
-            white-space: nowrap; /* Не переносить текст метки */
+            white-space: nowrap;
         }
         #controls button {
             padding: 8px 15px;
@@ -57,13 +57,13 @@
             background-color: #0056b3;
         }
         #controls input[type="range"] {
-            width: 150px; /* Уменьшить ширину ползунка для мобильных */
+            width: 150px;
         }
-        #signature { /* Добавленный стиль для подписи */
+        #signature {
             position: absolute;
             bottom: 10px;
             right: 10px;
-            color: rgba(255, 255, 255, 0.5); /* Полупрозрачный белый */
+            color: rgba(255, 255, 255, 0.5);
             font-size: 0.9em;
             z-index: 10;
         }
@@ -80,15 +80,16 @@
     </div>
     <div id="controls">
         <label for="object-count">Количество объектов:</label>
-        <input type="range" id="object-count" min="100" max="10000" value="1000" step="100">
-        <span id="current-object-count">1000</span>
+        <input type="range" id="object-count" min="1" max="4" value="1" step="1">
+        <span id="current-object-count">1</span>
 
         <label for="poly-detail">Детализация полигонов:</label>
-        <input type="range" id="poly-detail" min="1" max="6" value="1" step="1">
+        <input type="range" id="poly-detail" min="1" max="12" value="1" step="1">
         <span id="current-poly-detail">1</span>
 
         <button id="start-test">Запустить/Перезапустить тест</button>
-    </div>
-    <div id="signature">by Sigma Kofe</div> <script type="module" src="./main.js"></script>
+        <button id="toggle-objects">Показать/Скрыть объекты</button> </div>
+    <div id="signature">by Sigma Kofe</div>
+    <script type="module" src="./main.js"></script>
 </body>
 </html>
