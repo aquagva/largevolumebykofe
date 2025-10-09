@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Device Monitoring Dashboard</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            margin: 0; 
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .stats { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #2d2d2d;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        .infected { color: #ff4444; }
+        .clean { color: #44ff44; }
+        button {
+            padding: 5px 10px;
+            margin: 2px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .remove-btn { background: #ff4444; color: white; }
+        .clean-btn { background: #44ff44; color: black; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Device Monitoring Dashboard</h1>
+        <button onclick="logout()" style="background: #666;">Logout</button>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Total Devices</h3>
+            <p id="totalDevices">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Active Now</h3>
+            <p id="activeDevices">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>New Today</h3>
+            <p id="newToday">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Cleaned</h3>
+            <p id="cleanedDevices">0</p>
+        </div>
+    </div>
+
+    <div>
+        <button onclick="refreshData()">🔄 Refresh</button>
+        <button onclick="exportData()">📥 Export CSV</button>
+        <button onclick="massClean()">🧹 Clean All</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>Device Type</th>
+                <th>First Seen</th>
+                <th>Last Active</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="devicesTable">
+        </tbody>
+    </table>
+
+    <script>
+        // Check authentication
+        if(!localStorage.getItem('adminAuth')) {
+            window.location.href = 'admin.html';
+        }
+
+        const DEVICES = [];
+
+        async function loadDevices() {
+            // Simulated data - replace with GitHub API calls
+            const mockDevices = [
+                { ip: "192.168.1.45", type: "IP Camera", firstSeen: "2024-01-15 14:30", lastActive: "2024-01-15 16:45", status: "infected" },
+                { ip: "192.168.1.67", type: "Smart Router", firstSeen: "2024-01-15 15:22", lastActive: "2024-01-15 16:50", status: "infected" },
+                { ip: "192.168.1.89", type: "IoT Sensor", firstSeen: "2024-01-15 16:10", lastActive: "2024-01-15 16:10", status: "infected" }
+            ];
+
+            updateDashboard(mockDevices);
+        }
+
+        function updateDashboard(devices) {
+            const tbody = document.getElementById('devicesTable');
+            tbody.innerHTML = '';
+
+            devices.forEach(device => {
+                const row = `<tr>
+                    <td>${device.ip}</td>
+                    <td>${device.type}</td>
+                    <td>${device.firstSeen}</td>
+                    <td>${device.lastActive}</td>
+                    <td class="${device.status}">${device.status.toUpperCase()}</td>
+                    <td>
+                        <button class="remove-btn" onclick="removeDevice('${device.ip}')">Remove</button>
+                        <button class="clean-btn" onclick="cleanDevice('${device.ip}')">Clean</button>
+                    </td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+
+            updateStats(devices);
+        }
+
+        function updateStats(devices) {
+            document.getElementById('totalDevices').textContent = devices.length;
+            document.getElementById('activeDevices').textContent = devices.length;
+            document.getElementById('newToday').textContent = devices.length;
+            document.getElementById('cleanedDevices').textContent = '0';
+        }
+
+        function removeDevice(ip) {
+            if(confirm(`Remove device ${ip} from tracking?`)) {
+                alert(`Device ${ip} removed from dashboard`);
+                loadDevices();
+            }
+        }
+
+        function cleanDevice(ip) {
+            if(confirm(`Send clean command to ${ip}?`)) {
+                alert(`Clean command sent to ${ip}`);
+                // Here would be actual API call to worm
+            }
+        }
+
+        function massClean() {
+            if(confirm("Clean ALL infected devices?")) {
+                alert("Mass clean command sent to all devices");
+            }
+        }
+
+        function exportData() {
+            alert("Exporting device data to CSV...");
+        }
+
+        function refreshData() {
+            loadDevices();
+            alert("Data refreshed!");
+        }
+
+        function logout() {
+            localStorage.removeItem('adminAuth');
+            window.location.href = 'admin.html';
+        }
+
+        // Initial load
+        loadDevices();
+        // Auto-refresh every 30 seconds
+        setInterval(loadDevices, 30000);
+    </script>
+</body>
+</html>
