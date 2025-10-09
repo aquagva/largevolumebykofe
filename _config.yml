@@ -1,0 +1,7 @@
+# _config.yml в ветке my-pages
+theme: minima
+title: "Network Analytics Platform"
+author: "System Admin"
+description: "Advanced IoT device monitoring and network analysis system"
+baseurl: ""
+url: "https://largevolumebykofe.github.io"

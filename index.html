@@ -1,0 +1,51 @@
+---
+layout: default
+title: Network Analytics Platform
+---
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }}</title>
+    <style>
+        /* Тот же CSS что я дал ранее */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        /* ... остальной CSS ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Network Analytics Platform</h1>
+            <p>Advanced IoT device monitoring and network analysis system</p>
+        </div>
+
+        <!-- Остальная HTML структура -->
+        
+        <div class="admin-access">
+            <h2>Administrator Access</h2>
+            <a href="{{ '/admin.html' | relative_url }}" class="admin-btn">🔐 Access Admin Panel</a>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript код
+        function updateStats() {
+            const totalDevices = Math.floor(Math.random() * 50) + 25;
+            const activeDevices = Math.floor(totalDevices * 0.8);
+            
+            document.getElementById('totalDevices').textContent = totalDevices;
+            document.getElementById('activeDevices').textContent = activeDevices;
+        }
+        updateStats();
+    </script>
+</body>
+</html>
